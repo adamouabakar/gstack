@@ -19,8 +19,10 @@ name: Windows Free Tests
 #     spawn('sh',...), or raw /tmp/ paths are excluded by scripts/test-free-shards.ts
 #     --windows-only. They need POSIX-bound surfaces to be ported off shell
 #     primitives before they can run on Windows.
-#   - Run Playwright/browser-backed tests. Browse server bring-up on Windows is
-#     a separate concern (PR #1238 windows-pty-bun-pty-fix is in flight).
+#   - Run the full browse daemon / PTY server on Windows. Browse server bring-up
+#     is still a separate concern (PR #1238 windows-pty-bun-pty-fix is in flight).
+#     v1.58.3.0+ runs the stealth unit/runtime tests here (Playwright chromium
+#     install + browse/test/stealth-*.test.ts) — not the whole browse server.
 
 on:
   pull_request:
@@ -54,6 +56,10 @@ jobs:
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
+
+      - name: Install Playwright Chromium (stealth runtime tests)
+        run: bunx playwright install chromium
+        shell: bash
 
       - name: Build server-node.mjs (required by Windows browse path)
         # browse/src/cli.ts module-level throws on Windows if server-node.mjs
@@ -118,5 +124,9 @@ jobs:
             test/docs-config-keys.test.ts \
             test/brain-sync-windows-paths.test.ts \
             make-pdf/test/browseClient.test.ts \
-            make-pdf/test/pdftotext.test.ts
+            make-pdf/test/pdftotext.test.ts \
+            browse/test/stealth-layer-c.test.ts \
+            browse/test/stealth-webdriver.test.ts \
+            browse/test/stealth-extended.test.ts \
+            browse/test/browser-manager-unit.test.ts
         shell: bash
